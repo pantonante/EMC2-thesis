@@ -1,0 +1,15 @@
+<ScheduleTable>
+  <ScheduleScheme Name="SCHED_BOOT">
+      <WindowTable>
+          <Window Identifier="1" Start="0" Duration="200"
+              TimePartitionID="1" Flags="VM_SCF_PERIOD">
+          </Window>
+          <Window Identifier="2" Start="200" Duration="200"
+              TimePartitionID="2" Flags="VM_SCF_PERIOD">
+          </Window>
+          <Window Identifier="0" Start="400" Duration="300"
+              TimePartitionID="0">
+          </Window>
+      </WindowTable>
+  </ScheduleScheme>
+</ScheduleTable>

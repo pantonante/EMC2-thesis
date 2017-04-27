@@ -1,0 +1,18 @@
+<ScheduleTable>
+  <ScheduleScheme Name="SCHED_BOOT">
+    <WindowTable>
+      <Window Identifier="0" TimePartitionID="1" 
+      	Start="0" Duration="3" Flags="" />
+      <Window Identifier="1" TimePartitionID="2"
+      	Start="3" Duration="3" Flags="" />
+      <Window Identifier="3" TimePartitionID="3"
+      	Start="9" Duration="3" Flags="" />
+    </WindowTable>
+  </ScheduleScheme>
+  <ScheduleScheme Name="SCHED_POWERFAIL">
+    <WindowTable>
+      <Window Identifier="0" TimePartitionID="1"
+      	Start="0" Duration="1" Flags="" />
+    </WindowTable>
+  </ScheduleScheme>
+</ScheduleTable>

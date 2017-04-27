@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Example filepath="C:\MATLAB\Models\Example.slx">
+   <partitions number="2">
+      <partition id="1" period="Inf" wcet="0.5">
+         <activations/>
+      </partition>
+      <partition id="2" period="0.01" wcet="0.006">
+         <activations>
+            <activation>0</activation>
+         </activations>
+      </partition>
+   </partitions>
+   <nodes>
+      <node core="1" criticality="4" name="T1" partitionID="2" period="0.01" priority="7" start="0.003" wcet="0.001">
+         <resources>
+            <resource id="3">AXI</resource>
+         </resources>
+         <feedthrough>
+            <relationship dst="1" src="1"/>
+         </feedthrough>
+      </node>
+      <node core="1" criticality="4" name="T2" partitionID="2" period="0.01" priority="6" start="0.004" wcet="0.001">
+         <resources/>
+         <feedthrough>
+            <relationship dst="1" src="2"/>
+            <relationship dst="1" src="3"/>
+         </feedthrough>
+      </node>
+      <node core="1" criticality="4" name="T3" partitionID="2" period="0.01" priority="5" start="0.005" wcet="0.001">
+         <resources/>
+         <feedthrough>
+            <relationship dst="1" src="1"/>
+            <relationship dst="1" src="2"/>
+         </feedthrough>
+      </node>
+      <node core="1" criticality="4" name="T4" partitionID="1" period="Inf" priority="5" start="0" wcet="0.5">
+         <resources/>
+         <feedthrough/>
+      </node>
+      <node core="1" criticality="4" name="T5" partitionID="2" period="0.01" priority="8" start="0" wcet="0.003">
+         <resources>
+            <resource id="3">AXI</resource>
+         </resources>
+         <feedthrough/>
+      </node>
+   </nodes>
+   <edges>
+      <edge destination="T2" dstPort="3" size="192" source="T1" srcPort="1"/>
+      <edge destination="T3" dstPort="2" size="192" source="T2" srcPort="1"/>
+      <edge destination="T2" dstPort="2" size="192" source="T4" srcPort="2"/>
+      <edge destination="T1" dstPort="1" size="192" source="T5" srcPort="1"/>
+      <edge destination="T3" dstPort="1" size="192" source="T5" srcPort="1"/>
+   </edges>
+   <platform>
+      <cpu>2</cpu>
+   </platform>
+</Example>

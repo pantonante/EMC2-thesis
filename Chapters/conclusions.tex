@@ -1,0 +1,43 @@
+%!TEX root = ../thesis.tex
+
+\chapter{Conclusions}
+
+\ifpdf
+    \graphicspath{{Chapters/Figs/Raster/}{Chapters/Figs/PDF/}{Chapters/Figs/}}
+\else
+    \graphicspath{{Chapters/Figs/Vector/}{Chapters/Figs/}}
+\fi
+
+
+%********************************** % Section  **************************************
+\section{Contributions}
+%Goals: Studiare l'applicazione di hypervisors per mix-critical applications. Usare il Model-Based Design approach per superare la complessita' di implementare applicazioni safe & secure. 
+%è stato sviluppato un framework personalizzabile per la generazione di codice per sistemi multicore ARINC-xxx compliant. Sfrutta le potezialità (ormai mature) di RTW ma senza usare il concurrent workflow (che invece non è maturo). è stato sviluppato un framework  per la schedulazione di sistemi mix-critical anche se non  è sufficiente a gestire correntamente applicazioni mix-critical è un punto di partenza.
+
+Multi-core platforms have been introduced in many different settings, but so far they have not been utilized in the domain of safety-critical avionic real-time systems. A substantial amount of work has been put into the evaluation of hypervisors to address the security and safety for such applications.
+\par In this thesis, the area of code generation for mixed-critical application in multi-core embedded systems is taken into account. For this purpose, a Model-Based design framework, supported by Simulink, has been developed. It is a proof-of-concept integrated tool that allows the designer to design and deploy hard real-time, mixed-critical applications with the assistance of optimization problems and code generation.
+
+%********************************** % Section  **************************************
+\section{Future works}
+
+\paragraph{} The planned future work has two separate tracks. One is related to the optimization framework and aims at extending it with support for more comprehensive, robust partitioning algorithm. The second track of future work relates to the code generation process.
+
+\subsection{Scheduling and allocation}
+A current limitation of this work is that the validity of the proposed design framework has been extensively tested in simulation, but no experimental validation was conducted. Extensive testing and robustness improvements are needed to improve the effectiveness of the partitioning and scheduling framework. Improvements on the partitioning algorithm are necessary to improve safety and security of the implemented code. One step ahead in this direction might find some heuristics that estimates the impact of one step to the others. Another approach might be trying to encode each phase into a single MILP optimization problem. A possible drawback of the second method is that it can lead to problems which complexity makes them barely solvable for a small task-set. 
+\par A possible improvement for the scheduling algorithm might be analyzed more in depth how cache and memory interferences and delays can be minimized by the partitioning or the scheduling. An additional step might be added, in the current implementation there is a one-to-one map between subsystems and tasks, there can be cases in which this is not the optimal choice.
+
+\paragraph{} Another current limitation of the current implementation it the needs of the system designer to specify the Worst-Case Execution Time of each task. 
+\par Worst Case Execution Time analyses aim at determining an upper bound for a task execution time. Usually, the result of a WCET analysis is an upper approximation of the exact WCET which is nearly impossible to determine for real life Software. Simple architectures allow WCET determination using static analysis techniques using a model of execution. That means that the analyzed software is not executed but compiled and analyzed. On complex COTS processors architectures, it is not possible to determine an accurate model. Today, an alternative method is used. A worst case scenario is defined from an analysis performed on the Airborne Software. The execution time is measured under this scenario and is further corrected with parameters taking into account variability during operations. Timing analysis is tough in multi-core COTS due to the lack of information on the processor behavior. It may lead to a pessimistic estimation of those parameters. 
+\par There are a plenty of free and commercial tool for the timing analysis, some of them are directly integrated into the Simulink environment. These tools can be used to alleviate the workload of the system designer that can focus more on the architecture optimization. 
+However, there is a lack of research on WCET estimation under faulty conditions on safety-critical, multi-core COTS platforms that require temporal partitioning. This research is needed to deploy multi-core platforms in the avionics domain safely and for certification authorities to accept and approve their usage.
+
+\paragraph{} Another path to explore is the area of formal verification instead of empirical measurement-based methods. Formal methods with temporal specifications can be used to prove that a given set of partitions, with their tasks, can never reach hazardous states. This proof would be another great help for certification authorities.
+
+\subsection{Code Generation}
+The biggest limitation of the current code generator is that it does not support non-periodic tasks. This is not an intrinsic limitation of the approach, instead, it has not been implemented yet. All the non-periodic tasks can be placed on PikeOS \TP{0} thanks to the gaps left in the priority assignment. At the moment has not been implemented a semantics to mark those tasks.
+
+\paragraph{} An interesting improvements might be the support for the Hardware-in-the-Loop (HIL) Simulation. HIL simulation, which is quite common in the Aviation industry, is a type of real-time simulation, it can be used to test the controller design. In HIL simulations, the real controller responds to realistic stimuli coming from the virtual plant included in the model. HIL simulation can add great value to WCET estimation.
+
+\paragraph{} Another possible improvement might be improving the resource usage in the generated code. For example, if a block is sending data to another block via two different ports, and these are converted into sampling ports due to the partitioned architecture, it can be useful to merge the two data into the same port.
+
+\paragraph{} Moreover, the work-flow can be extended to other code generators, and eventually to hand-coded applications. The step in this direction is to model the system in \emph{SysML} \cite{sysml} which is a general-purpose modeling language for engineering systems (defined as an extension of UML) and to use a more generic code generator, such as Acceleo \cite{Acceleo}, to generate the glue code.

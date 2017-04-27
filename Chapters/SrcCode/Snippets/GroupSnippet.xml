@@ -1,0 +1,46 @@
+<!-- ... -->
+<Group name="Partition A">
+	<!-- Partition Configuration -->
+	<ComponentInstance name="ServerPartition" ref="empty_partition_default">
+		<ParameterValue name="PARTNAME" value="PartitionA"/>
+		<VmitConfigurationTable>
+			<VmitConfiguration condition="true" isReference="true">
+				<Partition Abilities="" CpuMask="0" Identifier="$(PARTID)" MaxChildTaskCount="20" MaxFDCount="20" MaxPrio="62" MultiPartitionHMTableID="0" Name="$(PARTNAME)" SchedChangeAction="VM_SCHED_CHANGE_IGNORE" StartupMode="VM_PART_MODE_COLD_START" TimePartitionID="1">
+					<FileAccessTable>
+						<ComponentReference ref="ProcessA"/>
+					</FileAccessTable>
+					<MemoryRequirementTable>
+						<ComponentReference ref="ProcessA"/>
+					</MemoryRequirementTable>
+					<ProcessTable>
+						<ComponentReference ref="ProcessA"/>
+					</ProcessTable>
+					<QueuingPortTable>
+						<ComponentReference ref="ProcessA"/>
+					</QueuingPortTable>
+					<SamplingPortTable>
+						<SamplingPort Name="sport_0_src" RefreshRate="100" MaxMessageSize="12" 	Direction="VM_PORT_SOURCE">
+						</SamplingPort>
+						<ComponentReference ref="ProcessA"/>
+					</SamplingPortTable>
+					<HMTable>
+						<DefaultSwitch>
+							<Default Action="P4_HM_PAC_IDLE" Code="0" Level="P4_HM_LEVEL_USER" Notify="0"/>
+						</DefaultSwitch>
+					</HMTable>
+				</Partition>
+			</VmitConfiguration>
+		</VmitConfigurationTable>
+	</ComponentInstance>
+	<!-- Process Configuration -->
+	<ComponentInstance name="ProcessA" ref="PikeOS Native Process">
+		<ParameterValue name="SUPPORT_DEBUG" value="true"/>
+		<ParameterValue name="DESTNAME" value="ProcessA"/>
+		<ParameterValue name="NUM_ARGS" value="0"/>
+		<ParameterValue name="FILE" value="CUSTOM_POOL/pikeos-native/object/processA"/>
+		<AssignedDependencyTable>
+			<AssignedDependency cmp="muxa" provideId="CHANNEL_01" dependId="DEBUG_PROV" />
+		</AssignedDependencyTable>
+	</ComponentInstance>
+</Group>
+<!-- ... -->

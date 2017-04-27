@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface name="Ctrl1Err">
+    <BuildDir>Ctrl1Err_p4_zynq</BuildDir>
+    <SrcFiles>
+        <item id="0">Ctrl1Err_h</item>
+        <item id="1">Ctrl1Err_types_h</item>
+        <item id="2">rtwtypes_h</item>
+        <item id="3">Ctrl1Err_c</item>
+        <item id="4">Ctrl1Err_private_h</item>
+        <item id="5">Ctrl1Err_data_c</item>
+    </SrcFiles>
+    <header id="0">
+        <item>Ctrl1Err_h</item>
+    </header>
+    <body id="3">
+        <item>Ctrl1Err_c</item>
+    </body>
+    <Inputs structName="Ctrl1Err_U">
+        <item dim="3">A</item>
+        <item dim="3">B</item>
+        <item dim="3">C</item>
+        <item dim="9">C1</item>
+    </Inputs>
+    <Outputs structName="Ctrl1Err_Y">
+        <item dim="3">RobTraj</item>
+    </Outputs>
+    <Functions>
+        <Initialize>Ctrl1Err_initialize();</Initialize>
+        <Step>Ctrl1Err_step();</Step>
+        <Terminate>Ctrl1Err_terminate();</Terminate>
+    </Functions>
+</interface>

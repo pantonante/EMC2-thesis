@@ -1,0 +1,15 @@
+<ConnetctionTable>
+<!-- ... -->
+	<PartitionChannelTable>
+		<!-- ... -->
+		<Channel PortType="VM_PORT_SAMPLING">
+			<DestinationPortRef PortName="sport_0_dst" PartitionID="3">
+            </DestinationPortRef>
+			<SourcePortRef PortName="sport_0_src" PartitionID="2">
+            </SourcePortRef>
+		</Channel>
+		<!-- ... -->
+	</PartitionChannelTable
+	<!-- ... -->
+</ConnetctionTable
+	

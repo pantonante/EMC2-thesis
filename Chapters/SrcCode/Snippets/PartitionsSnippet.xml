@@ -1,0 +1,6 @@
+<PartitionTable>
+	<!-- ... -->
+	<ComponentReference ref="PartitionA"/>
+	<ComponentReference ref="PartitionB"/>
+	<!-- ... -->
+</PartitionTable>
