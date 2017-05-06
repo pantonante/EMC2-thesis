@@ -954,14 +954,20 @@ wish to left align your text}
 {\usebox{\PHD@dept}}
 \vspace{.2\PHD@titlepagespacing}
 
+\vspace*{2em}
+
 % University Crest Long if college crest is defined
 \ifPHD@collegeshield%
 	{\usebox{\PHD@crest}}
 	\vspace{.25\PHD@titlepagespacing}
 \fi
 
+\vspace*{2em}
+
 % Title
 {\usebox{\PHD@Title}} % subtitle is defined
+
+\vspace*{1em}
 
 % Crest
 %
@@ -975,11 +981,15 @@ wish to left align your text}
 %	\vspace{.15\PHD@titlepagespacing}
 %\fi
 
-\vfill
-
 % Author
 %{\usebox{\PHD@author}}
 %\vspace*{1em}
+
+\vspace*{3em}
+% Submission Text
+{\usebox{\PHD@submission}}
+
+\vfill
 
 % Advisor
 \ifPHD@advisor%
@@ -992,10 +1002,6 @@ wish to left align your text}
 {\usebox{\PHD@supervisor}}
 \vspace*{0.5em}
 \fi
-
-
-% Submission Text
-{\usebox{\PHD@submission}}
 
 % College and degree date
 \vspace{.2\PHD@titlepagespacing}
@@ -1189,6 +1195,26 @@ wish to left align your text}
   \fi
 \end{lrbox}
 
+% Department Box
+\newsavebox{\PHD@dept}
+\begin{lrbox}{\PHD@dept}
+  \begin{minipage}[c]{\textwidth}
+    \centering {\large \@dept \par}
+	       {\large \@university \par}
+  \end{minipage}
+\end{lrbox}
+
+% Submission Box
+\newsavebox{\PHD@submission}
+\begin{lrbox}{\PHD@submission}
+  \begin{minipage}[c]{\textwidth}
+    \begin{center}
+      \large \submissiontext \par
+      \large \textit {\@degreetitle} \par
+    \end{center}
+  \end{minipage}
+\end{lrbox}
+
 % Author Box
 \newsavebox{\PHD@author}
 \begin{lrbox}{\PHD@author}
@@ -1208,12 +1234,12 @@ wish to left align your text}
       \begin{center}
         \makebox[\widthof{supervisorrole} + \@supervisorlinewidth][c]{
     
-    	\begin{minipage}[c]{\textwidth}
-    		\begin{minipage}{\textwidth}
+    	%\begin{minipage}[c]{\textwidth}
+    		\begin{minipage}{0.5\textwidth}
     			\flushleft{
     				Supervisors: \\
     				\@supervisor}
-                    \ifthenelse{\equal{\@author}{}}{
+                    \ifthenelse{\equal{\@extsupervisor}{}}{
                     	% No Ext-Supervisort
                     }{
                       \flushleft{
@@ -1223,12 +1249,12 @@ wish to left align your text}
                     }
     		\end{minipage}
     		
-    		\begin{minipage}{\textwidth}
+    		\begin{minipage}{0.5\textwidth}
     			\flushright{
     				Author: \\
     				\@author}
     		\end{minipage}
-    	\end{minipage}
+    	%\end{minipage}
     
     	% Original    	
          % \Large
@@ -1256,26 +1282,6 @@ wish to left align your text}
       \end{center}
       \vspace{0.5em}
     } % advisor is defined
-  \end{minipage}
-\end{lrbox}
-
-% Department Box
-\newsavebox{\PHD@dept}
-\begin{lrbox}{\PHD@dept}
-  \begin{minipage}[c]{\textwidth}
-    \centering {\large \@dept \par}
-	       {\large \@university \par}
-  \end{minipage}
-\end{lrbox}
-
-% Submission Box
-\newsavebox{\PHD@submission}
-\begin{lrbox}{\PHD@submission}
-  \begin{minipage}[c]{\textwidth}
-    \begin{center}
-      \large \submissiontext \par
-      \large \textit {\@degreetitle} \par
-    \end{center}
   \end{minipage}
 \end{lrbox}
 

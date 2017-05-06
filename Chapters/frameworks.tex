@@ -95,8 +95,8 @@ A thread is put into the STOPPED state using p4\_thread\_stop().
 
 \subsection{Time Partitions}
 The PikeOS partition scheduler uses a combination of priority-based and time-driven scheduling. 
-\par In contrast to the ARINC 653 standard, PikeOS scheduling uses a one-to-n assignment of resource partitions to time-partitions. This means that one or more resource partitions can be assigned to one time-partition. In this work, we use time partitioning to allocate a certain amount of CPU time to each resource partition (even though PikeOS capabilities go beyond this, this approach is fully ARINC 653 compliant). In this case, there is a \emph{one-to-one relationship between time and resource partition}s. This type of configuration is illustrated in figure \ref{fig:TimePartitioning}. Moreover, a PikeOS partition may host more than one task (Process), but in this work, we assign one task to one resource partition.
-\paragraph{} Each Time Partition is made by one or more \emph{Time Windows} representing a time slice allocated to that Time Partition. Each Time Windows can be marked as the start of a new period, allowing a static definition of preemption between partitions.
+\par In contrast to the ARINC 653 standard, PikeOS scheduling uses a n-to-one assignment of resource partitions to time-partitions. This means that one or more resource partitions can be assigned to one time-partition. In this work, time partitioning is used to allocate a given amount of CPU time to each resource partition (even though PikeOS allow  a many-to-1 mapping, our approach is fully ARINC 653 compliant). In this case, there is a \emph{one-to-one relationship between time and resource partition}s. This type of configuration is illustrated in figure \ref{fig:TimePartitioning}. Moreover, a PikeOS partition may host more than one task (Process), but in this work, each task is assigned to one and only one resource partition.
+\paragraph{} Each Time Partition consists of one or more \emph{Time Windows} representing time intervals allocated to the Time Partition. Each Time Window can be marked as the start of a new period, allowing a static definition of preemption between partitions.
 
 \begin{figure}[htbp] 
 \centering    
@@ -105,11 +105,11 @@ The PikeOS partition scheduler uses a combination of priority-based and time-dri
 \label{fig:TimePartitioning}
 \end{figure}
 
-\paragraph{}It is worth mentioning that, in contrast to the ARINC 653 standard, one special partition, that is active at all times, exists. This time partition is referred as the \emph{background partition}\footnote{Background time-partition in parallel to the active
-time-partitions is an invention by SYSGO and under active patents.}, \TP{0}, whereas the currently active one of the time-switched partitions is called the \emph{foreground partition}, \TP{i} with $i={1,...,N}$.
+\paragraph{}It is worth mentioning that, in contrast to the ARINC 653 standard, there is one special partition that is active at all times. This time partition is referred as the \emph{background partition}\footnote{Background time-partition in parallel to the active
+time-partitions is an invention by SYSGO and under active patents.}, \TP{0}, whereas the currently active time-switched partition is called the \emph{foreground partition}, \TP{i} with $i={1,...,N}$.
 
 \subsection{PikeOS Scheduler}\label{sec:P4Scheduler}
-Each time partition has its own priority, in addition to that, threads do also have a priority attribute. Whenever both the foreground and background partitions have active threads, the thread to be executed is selected according to its priority. Figure \ref{fig:PikeosScheduler} shows the principle of operation: each time partition is represented as a priority-sorted list of FIFO ready queues. Each of them delivers its highest priority ready thread and of these, the highest priority one from either \TP{0} or the currently selected \TP{i} gets chosen for dispatch.
+Each time partition has its own priority, in addition to that, threads also have a priority attribute. Whenever both the foreground and background partitions have active threads, the thread to be executed is selected according to its priority. Figure \ref{fig:PikeosScheduler} shows the principle of operation: each time partition is represented as a priority-sorted list of FIFO ready queues. Each of them delivers its highest priority ready thread and of these, the highest priority one from either \TP{0} or the currently selected \TP{i} gets chosen for dispatch.
 
 \begin{figure}[htbp] 
 \centering    
@@ -118,7 +118,7 @@ Each time partition has its own priority, in addition to that, threads do also h
 \label{fig:PikeosScheduler}
 \end{figure}
 
-\paragraph{} Partitions periodically receive guaranteed time slices. But, whenever one of these partitions completes its job prior to having consumed its entire time slice, the unused time automatically falls back to the next lower priority thread in the background time partition. Thus, by running explicitly non-real-time applications with lower priority threads in the background time partition (\TP{i}), these non- real-time applications receive all the computational resources that were assigned to, but not consumed by real-time application in the foreground partition (\TP{i}). This is a powerful approach to enforce the throughput of the safety-critical system. Figure \ref{fig:PikeosLowTP0}).
+\paragraph{} Partitions periodically receive guaranteed time slices. But, whenever one partition completes its job prior to having consumed its entire time slice, the unused time automatically falls back to the next lower priority thread in the background time partition. Thus, by running explicitly non-real-time applications with lower priority threads in the background time partition (\TP{i}),  non real-time applications can receive spare computational resources that were assigned to, but not consumed by real-time application in the foreground partition (\TP{i}). This simple approach allows to improve the throughput of safety-critical systems. Figure \ref{fig:PikeosLowTP0}).
 
 \begin{figure}[htbp] 
 \centering    
@@ -127,7 +127,7 @@ Each time partition has its own priority, in addition to that, threads do also h
 \label{fig:PikeosLowTP0}
 \end{figure}
 
-In the opposite scenario, it is possible to define threads in the background domain, which can override time partitioning by assigning them a priority above those of the foreground domain threads (fig. \ref{fig:PikeosHighTP0}). 
+In a somewhat opposite scenario, it is possible to define threads in the background domain, which can override time partitioning by assigning them a priority above those of the foreground domain threads (fig. \ref{fig:PikeosHighTP0}). 
 
 \begin{figure}[htbp] 
 \centering    
@@ -136,7 +136,7 @@ In the opposite scenario, it is possible to define threads in the background dom
 \label{fig:PikeosHighTP0}
 \end{figure}
 
-\paragraph{}The upper time-diagram in Figure \ref{fig:PikeosHighTP0} has a fault handler, which is called in a dedicated time-partition \TP{4}. In case of a failure the response-time of the fault-handler can be quite high if the error happens right after the fault handler time-partition has ended. By assigning the fault handler to \TP{0}, the handler is starter immediately, as it has the highest priority among all active threads (lower time-diagram of Figure \ref{fig:PikeosHighTP0}). Clearly, such high priority threads must be considered as trusted code from the point of view of the threads that they can preempt.
+\paragraph{}The upper time-diagram in Figure \ref{fig:PikeosHighTP0} has a fault handler, which can be executed in a dedicated time-partition \TP{4}. In case of a failure the response-time of the fault-handler can be high if the error happens right after the fault handler time-partition has ended. By assigning the fault handler to \TP{0}, the handler is starter immediately, as it has the highest priority among all active threads (lower time-diagram of Figure \ref{fig:PikeosHighTP0}). Clearly, such high priority threads must be considered as trusted code from the point of view of the threads that they can preempt.
 
 \paragraph{} PikeOS support the possibility to change, at runtime, the Time Partition schedule. Each schedule is expressed (statically) inside the configuration file, and it is called \emph{scheme}. Schemes allow the system designer to adjust the time partitioning to handle exceptional situations rather than having to design a single time partitioning scheme which will suit all possible scenarios. The following XML code fragment shows a configuration with two schemes named "SCHED\_BOOT" (which is the one loaded at startup) and "SCHED\_POWERFAIL".
 % CODE FRAGMENT
@@ -154,7 +154,7 @@ In the opposite scenario, it is possible to define threads in the background dom
 \end{figure}
 
 \subsection{Timeouts}
-The PikeOS kernel provides a logical timebase for system time and timeouts. The system time value represents the elapsed time since startup. The resolution of the system time is platform and configuration dependent.
+The PikeOS kernel provides a logical timebase for system time and timeouts. The system time value represents the elapsed time since startup. The resolution of the system time is platform- and configuration-dependent.
 
 \par The PikeOS kernel provides different types of timeouts, in this work only \emph{Normal Timeouts} are used. They are timeouts that specifies a point in time with respect to the system time. Each timeout can be absolute or relative: an absolute timeout specifies the timeout as a system time value, while a relative timeout specifies the timeout as a difference relative to the current system time. Valid values are:
 \begin{itemize}
@@ -170,8 +170,8 @@ PikeOS provides message based communication through statically configured commun
 
 \paragraph{} The PikeOS  kernel provides two different types of port that allows different partitions to communicate, these are:
 \begin{itemize}
-\item \emph{Sampling Ports}. It uses a single message buffer that is atomically updated by a write operation; it also maintains the age of a message measured from the time of reception, which can be compared to the port’s refresh rate (this is used to derive a message validity);
-\item \emph{Queuing Ports}. It operates as a FIFO buffer with a maximum message size.
+\item \emph{Sampling Ports}. They use a single message buffer that is atomically updated by a write operation; they also maintain the age of a message measured from the time of reception, which can be compared to the port’s refresh rate (this is used to derive a message validity);
+\item \emph{Queuing Ports}. Operate as a FIFO buffer with a maximum message size.
 \end{itemize}
 
 \paragraph{}Communication via ports guarantees that either an entire message is written to or read from a port or no data is transferred at all. Queuing ports provide a blocking API with a message queue and with an optional timeout. Messages written to a queuing port are buffered within the PikeOS framework, i.e., they are copied twice: once on the write and once on the read. This ensures that a message that has been successfully written to a queuing port and cannot be corrupted by any user application, particularly not the sending one when it changes the send buffer. It is not an error for a port to be unconnected to another port. Instead, the port will behave as if the other side is completely unresponsive.
@@ -219,9 +219,9 @@ Simulink\textregistered \cite{Simulink}, developed by \emph{The MathWorks Inc.},
 \paragraph{} In order to generate C/C++ code from Simulink models, we can use \emph{Simulink Coder}\textregistered, formerly \emph{Real-Time Workshop}\textregistered. It supports code generation from both Simulink diagrams and Stateflow charts. Moreover; with Embedded Coder\textregistered, we can generate C/C++ code optimized to be used on embedded processors, on-target rapid prototyping boards, and microprocessors. It also provides traceability reports, code interface documentation, and automated software verification to assistance support standards such as DO-178 and ISO 26262 during development. It also supports external mode to connect the Simulink block diagram to the relative application that runs the model on the target hardware. The block diagram becomes a user interface to the real-time application, and by changing parameters in the Simulink blocks, the parameters in the real-time application also changes.
 
 \subsection{Synchronous-Reactive Model of Computation}
-Simulink implements a Synchronous-Reactive (SR) model of computation (MoC), it is designed for modeling systems that involve synchrony, a fundamental concept in concurrent systems \cite{Ptolemy2}. 
+Simulink implements a Synchronous-Reactive (SR) model of computation (MoC), and is used for the representation of systems in which components evolve synchronously, a fundamental concept for the modeling of concurrent systems \cite{Ptolemy2}. 
 \par Synchronous-Reactive models are networks of Mealy-type blocks, eventually clustered into subsystems and can be continuous, discrete or triggered \cite{tres}. Continuous blocks process continuous-time signals and produce as output other continuous-signal functions according to the block description, typically a set of differential equations. Discrete-time blocks are activated at periodic-time instants and process input signals producing outputs signals and state updates. Finally, triggered blocks are only executed on the occurrence of a given event (a signal transition or a function call). 
-\par Since we are interested in automatic code generation let us focus on discrete-time blocks which are (eventually) activated at each tick-time $t$. Let us denote a generic block $i$ as $B_i$, the input vector at tick-time $t$ as $\vec{u_i}(t)$ and similarly the output vector as $\vec{y_i}(t)$. Each block maintains a state vector $\vec{s_i}(t)$, then the behavior of $B_i$ can be modeled as an \emph{output update} function
+\par Since we are interested in automatic code generation let us focus on discrete-time blocks which are (eventually) activated at each tick-time $t$. Let us denote a generic block $i$ as $B_i$, the input vector at tick-time $t$ as $\vec{u_i}(t)$ and similarly the output vector as $\vec{y_i}(t)$. Each block maintains a state vector $\vec{s_i}(t)$, and the behavior of $B_i$ is represented by its \emph{output update} function
 \begin{equation}
 \vec{y_i}(t)=f(\vec{u_i}(t),\vec{s_i}(t))
 \end{equation}
@@ -234,11 +234,11 @@ Often, the two update functions are considered as one:
 (\vec{y_i}(t), \vec{s_i}(t+1)) = h(\vec{u_i}(t),\vec{s_i}(t))
 \end{equation}
 
-\paragraph{} A fundamental part of the model executable semantics are the rules dictating the evaluation order of the blocks. A block has a \emph{direct feedthrough} relationship between ports when the output port is controlled directly by the value of any input port signal. Any block with direct feedthrough relationship cannot execute until the block(s) driving its input has (have) executed. Therefore the set of topological dependencies implied by the direct feedthrough relationships defines a partial order of execution of the blocks. When the simulation starts, Simulink computes a total order of block execution compatible with the partial one.
+\paragraph{} A fundamental part of the model executable semantics are the rules dictating the evaluation order of the blocks. A block has a \emph{direct feedthrough} relationship between ports when the output port is controlled directly by the value of any input port signal. Any block with direct feedthrough relationship cannot execute until the block(s) driving its input has (have) executed. The set of topological dependencies implied by the direct feedthrough relationships defines a partial order of execution of the blocks. When the simulation starts, Simulink computes a total order of block execution compatible with the partial one.
 
 \subsection{Real-Time Workshop Code Generation Process}
 \label{sec:RTWGenerationProcess}
-The Real-Time Workshop simplifies the process of building application programs. One of its features is automatic program building, which provides a standard means to create programs for real-time applications in a variety of host environments. It does this in a fully customizable way. The overall model build process is depicted in figure \ref{fig:RTWBuildProcess}.
+The Real-Time Workshop (RTW) simplifies the process of building application programs. One of its features is automatic program building, which provides a standard means to create programs for real-time applications in a variety of host environments. The functioning of RTW is fully customizable. The overall model build process is depicted in figure \ref{fig:RTWBuildProcess}.
 
 \begin{figure}[htbp] 
 \centering    
@@ -246,9 +246,9 @@ The Real-Time Workshop simplifies the process of building application programs. 
 \caption{Real-Time Workshop Model Building Process}
 \label{fig:RTWBuildProcess}
 \end{figure}
-The initial stage of the code generation process is to analyze the source model; the resultant description file, \verb|model.rtw|, it contains a \emph{compiled} representation of the model including a hierarchical structure of records describing systems, blocks, and their connections. This intermediate model description feeds the \emph{Target Language Compiler\textregistered} (TLC) that interprets it and guide the C/C++ code generation. It is also possible to write a \emph{Template Make File} (TMF) that define how to generate a Makefile for the actual compilation of the generated source files.
+The initial stage of the code generation process is to analyze the source model; the resulting description file, \verb|model.rtw| contains a \emph{compiled} representation of the model including a hierarchical structure of records describing systems, blocks, and their connections. This intermediate model description feeds the \emph{Target Language Compiler\textregistered} (TLC) that interprets it and guide the C/C++ code generation. It is also possible to write a \emph{Template Make File} (TMF) that define how to generate a Makefile for the actual compilation of the generated source files.
 
-\paragraph{} The RTW file is a language-independent format, basically stored as an ASCII file. For example let us take a model like the one depicted in figure \ref{fig:RTWModelExample}. An excerpt of the generated \verb|model.rtw| is in figure \ref{fig:RTWFileExample}.
+\paragraph{} The RTW file is a language-independent format, basically stored as an ASCII file. For example, consider the model depicted in figure \ref{fig:RTWModelExample}. An excerpt of the generated \verb|model.rtw| is in figure \ref{fig:RTWFileExample}.
 
 \begin{figure}[htbp] 
 \centering    
@@ -266,14 +266,14 @@ The initial stage of the code generation process is to analyze the source model;
 
 \subsubsection{Code Architecture}
 \label{sec:CodeArchitecture}
-When a model or a block is generated, RTW follows a general structure for the generated code. Blocks have inputs, outputs, parameters, states, and other general properties. All Block inputs and outputs are written into a block I/O structure (\verb|rtXX|) and instantiated as global variables. Figure \ref{fig:TLCCodeStructure} shows the general block data mappings.
+When a model or a block is generated, the RTW follows a general structure for the generated code. Blocks have inputs, outputs, parameters, states, and other general properties. All Block inputs and outputs are written into a block I/O structure (\verb|rtXX|) and instantiated as global variables. Figure \ref{fig:TLCCodeStructure} shows the general block data mappings.
 \begin{figure}[htbp] 
 \centering    
 \includegraphics[width=1.0\textwidth]{TLCCodeStructure}
 \caption{TLC Block code structure}
 \label{fig:TLCCodeStructure}
 \end{figure}
-This structure apply also for the model when it is generated. Out of the generation process, three \emph{Entry Point Functions} are available:%Embedded Coder pag 702
+This structure applies also to the generated model. Out of the generation process, three \emph{Entry Point Functions} are available:%Embedded Coder pag 702
 \begin{itemize} 
 \item \emph{model\_initialize}. Model initialization entry point.
 \item \emph{model\_step}. Step routine entry point.
@@ -284,15 +284,15 @@ The structures and the function are stored in the source code. Embedded Coder cr
 \item \emph{model.c}. Contains entry point functions implementing the model algorithm.
 \item \emph{model\_private.h}. Contains local macros and local data that are required by the model and subsystems. This file is included in the model.c file as a \verb|#include| statement.
 \item \emph{model.h}. Declares model data structures,a public interface to the model
-entry points and data structures. This files is included in \verb|model.c| file.
+entry points and data structures. This file is included in the \verb|model.c| file.
 \item \emph{model\_types.h}. Provides forward declarations for the data structure and the parameters data structure.
 \item \emph{rtwtypes.h}. Defines data types, structures, and macros required by Embedded Coder generated code.
-\item \emph{Optional files}. Sometimes also some source or header files are required by the generated code. These files are placed in the build folder.
+\item \emph{Optional files}. Sometimes additional source or header files are required by the generated code. These files are placed in the build folder.
 \end{itemize}
 
 \subsection{Concurrent Workflow}
 Simulink provides a way to address the challenge of designing systems for concurrent execution through its \emph{Concurrent Workflow}. It uses the process of partitioning, mapping, and profiling to define the structure of the parallel application.
-Partitioning enables to designate regions of the model as tasks. Mapping enables to assign partitions (tasks) to processing elements such as FPGAs or CPUs. Then Profiling simulates deployment of the application under typical computational loads.
+Partitioning enables to designate regions of the model as tasks. Mapping enables to assign partitions (tasks) to processing elements such as FPGAs or CPUs. Then Profiling simulates the deployment of the application under typical computational loads.
 \begin{figure}[htbp] 
 \centering    
 \includegraphics[width=0.8\textwidth]{SimulinkConcurrentWorkflow.png}
@@ -302,8 +302,8 @@ Partitioning enables to designate regions of the model as tasks. Mapping enables
 %https://www.mathworks.com/help/simulink/ug/solving-embedded-performance-problems-using-multicore-processors-and-fpgas.html
 %https://www.mathworks.com/help/simulink/ug/implicit-and-explicit-partitioning-of-models.html
 \par Partitioning is the first step for defining the application's structure. There are two ways to partition the model for running on individual processing nodes.
-The automated way of creating tasks and mapping them to processing nodes is called \emph{implicit partitioning}. Simulink partitions the model basing on the sample times of blocks at the root level. Each sample time in the model corresponds to a partition, and all blocks of a single rate or sample time belong to the same partition. Then these partitions are mapped to tasks and their priority assigned according to rates. Therefore, implicit partitioning assumes the hardware architecture consists of a single multi-core CPU and that the Operating System scheduler handles all the execution according to task priorities.
-\par Another way to specify partitions is to use \emph{explicit partitioning}. In explicit partitioning, partitions are created in the root-level model by using \emph{referenced models} (fig. \ref{fig:SimulinkTaskProfiling}). For example, if the model is made by a data acquisition and a controller, a possible partitioned model puts these components in two difference referenced models at the model root-level. Each sample time in a referenced model or a system block is a partition. Then using the \emph{Model Configurator}, in the Concurrent Execution dialog box, each task can be mapped to one processing node (set the affinity mask).
+The automated way of creating tasks and mapping them to processing nodes is called \emph{implicit partitioning}. Simulink partitions the model based on the sample times of blocks. Each sample time in the model corresponds to a partition, and all blocks activated with the same rate or sample time belong to the same partition. Then these partitions are mapped to tasks and their priority is assigned according to their rate. Therefore, implicit partitioning assumes the hardware architecture consists of a single multi-core CPU and that the Operating System scheduler handles all the execution according to task priorities.
+\par Another way to specify partitions is to use \emph{explicit partitioning}. In explicit partitioning, partitions are created in the root-level model by using \emph{referenced models} (fig. \ref{fig:SimulinkTaskProfiling}). For example, if the model is made by a data acquisition and a controller, a possible partitioned model puts these components in two difference referenced models at the model root-level. Each sample time in a referenced model or a system block is a partition. Then using the \emph{Model Configurator}, in the Concurrent Execution dialog box, each task can be mapped to one processing node (by setting its affinity mask).
 %https://www.mathworks.com/help/simulink/ug/implement-task-parallelism-in-simulink.html
 \begin{figure}
   \begin{subfigure}{0.65\textwidth}
@@ -324,14 +324,14 @@ The automated way of creating tasks and mapping them to processing nodes is call
   \label{fig:SimulinkTaskProfiling}
 \end{figure}
 
-\paragraph{} This tool is not yet mature, and complex to customize, for this reason, does not suit well for mixed-critical applications. The aim of both implicit and explicit partitioning is the extraction of tasks by grouping blocks instead of finding a way to isolate functionalities (robust partitioning). The automatic partitioning and mapping do not address the problem of safety and secure code execution. Instead, it focuses only on performance without any optimization. Even with explicit partitioning and mapping task priority assignment is rate-monotonic (tasks with shorter rate results in a lower priority) and does not take into account Worst-Case Execution Time of tasks and Resource usage. Both this two information are critical for schedule tasks minimizing interferences while exploiting as much as possible the task parallelism. Moreover, the whole process is strictly tied with Simulink environment making difficult to integrate pieces of software developed by hand or automatically generated by other software.
+\paragraph{} This tool is not yet mature, and complex to customize, for this reason, it does not suit well to mixed-critical applications. The aim of both implicit and explicit partitioning is the extraction of tasks by grouping blocks instead of finding a way to isolate functionality (robust partitioning). The automatic partitioning and mapping does not address the problem of safety and secure code execution. Instead, it focuses only on performance without any optimization. Even with explicit partitioning and mapping, the task priority assignment is rate-monotonic (tasks with shorter rate results in a lower priority) and does not take into account the Worst-Case Execution Time of tasks and the Resource usage. This information is critical for scheduling tasks while minimizing interferences and exploiting at best the task parallelism. Moreover, the whole process is strictly tied with the Simulink environment making difficult to integrate pieces of software developed by hand or automatically generated by other software.
 
-\paragraph{} For overcoming all these limitations, one possible approach is to customize the code generation process. Simulink provides a configuration tool for this: the \emph{Target Language Compiler}. The following section briefly introduces it.
+\paragraph{} To overcome these limitations, one possible approach is to customize the code generation process. Simulink provides a configuration tool for this: the \emph{Target Language Compiler}. The following section briefly introduces it.
 
 \subsection{Target Language Compiler}
 The Target Language Compiler tool is part of the Real-Time Workshop. It enables the customization of the C/C++ code generated from any Simulink model or custom defined blocks. It has been designed for the purpose of converting the model description file, \verb|model.rtw|, into target-specific code.
 
-\paragraph{} After reading the rtw file, the Target Language Compiler generates its code based on \emph{target files}, which specify any particular code for each block and the overall code style. TLC works like a text processor, it has mark-up syntax similar to HTML, along with the power of scripting languages, plus the data handling power of MATLAB (TLC can invoke MATLAB functions). All Simulink blocks are automatically converted to code (except MATLAB function blocks and S-function blocks that invoke M-files). 
+\paragraph{} After reading the rtw file, the Target Language Compiler generates code based on \emph{target files}, which specify the source code implementation of each block and the overall code framework for the entire model. TLC works like a text processor, it has a mark-up syntax similar to HTML, along with the power of scripting languages, plus the data handling power of MATLAB (TLC can invoke MATLAB functions). All Simulink blocks are automatically converted to code (except MATLAB function blocks and S-function blocks that invoke M-files). 
 \par In order to create a target-specific application, Real-Time Workshop also requires a template makefile that specifies the appropriate C compiler and its options for the build process. The template makefile is then transformed into a makefile (\verb|model.mk|) by performing \emph{token expansion} specific to a given model.
 
 \paragraph{} Any rtw file contain a series of (usually hierarchically nested) \emph{records} in the form:
@@ -339,7 +339,7 @@ The Target Language Compiler tool is part of the Real-Time Workshop. It enables 
 recordName {itemName itemValue}
 \end{verbatim}
 Item names are alphabetic. Item values can be strings or numeric values ( including scalars, vectors, and matrices). Curly braces set off the contents of each record, which may contain one or more items, delimited by space, tab, and/or return characters.
-\par In rtw file automatically generated from a Simulink model, the top-level (first) record’s name is \verb|CompiledModel|. Each block is represented by a subrecord within it, identified by the block’s name. The TLC, however, can parse any well-formed record file. For example, we can access:
+\par In an rtw file automatically generated from a Simulink model, the top-level (first) record’s name is \verb|CompiledModel|. Each block is represented by a subrecord within it, identified by the block name. The TLC, however, can parse any well-formed record file. For example, we can access:
 \begin{lstlisting}
 %% In tlc file you can:
 /* Print a comment in the output file */
@@ -347,31 +347,31 @@ Item names are alphabetic. Item values can be strings or numeric values ( includ
 The Model Name is: <%CompiledModel.Name>
 Generated on: %<genDate>
 \end{lstlisting}
-The first line is a comment; all text on a line following the characters \verb|%%| are treated as a comment (ignored, not interpreted or output). The text on the second line is printed out in the file as it is.
-\par The third line execute a TLC directive (because it starts with \verb|%|), the directive \verb|assign| creates a variable named \verb|genDate| and assigns a string value to it. The \verb|%assign| directive creates new and modifies existing variables. Its general
+The first line is a comment; all text on a line following the characters \verb|%%| is treated as a comment (ignored, not interpreted or output). The text on the second line is printed in the file as it is.
+\par The third line executes a TLC directive (because it starts with \verb|%|), the directive \verb|assign| creates a variable named \verb|genDate| and assigns a string value to it. The \verb|%assign| directive creates new and modifies existing variables. Its general
 syntax is:
 \begin{verbatim}
 %assign [::]variable = expression
 \end{verbatim}
 The optional double colon prefix specifies that the variable being assigned to is a global variable. In its absence, a local variable in the current scope is created or modified.
-\par The last two line evaluates (expands) records. More precisely, in the first case, it evaluates the field called \verb|Name| existing in the scope called \verb|CompiledModel|. The syntax \verb|%<expr>| causes expression \verb|expr| (which can be a record, a variable, or a function) to be evaluated. This operation is sometimes referred to as an \emph{eval}.
+\par The last two lines evaluate (expand) records. More precisely, the first line evaluates the field called \verb|Name| in the scope of \verb|CompiledModel|. The syntax \verb|%<expr>| causes the expression \verb|expr| (which can be a record, a variable, or a function) to be evaluated. This operation is sometimes referred to as an \emph{eval}.
 
-\paragraph{} The previous does not print anything, because all outputs were directed to a null device (sometimes called the “bit bucket”). There is always one active output file, even if it is null. To specify, open, and close files:
+\paragraph{} The previous statements do not print anything, because all outputs were directed to a null device (sometimes called the “bit bucket”). There is always one active output file, even if it is null. To specify, open, and close target files for code generation the following functions are available:
 \begin{verbatim}
 %openfile streamid [="filename"] [, mode]
 %closefile streamid
 %% Output operations ...
 %selectfile streamid
 \end{verbatim}
-The \verb|%openfile| directive creates a file/buffer (in “w” mode), or opens an existing one (in “a” or “r” mode). Note required equals sign for file specification. Any number of streams can be open for writing, but only one can be active at one time. The directive is useful to switch between open files; they do not need to be closed until output operations to them are actually ended. When activated, \verb|STDOUT| directs output to the MATLAB command window.
+The \verb|%openfile| directive creates a file/buffer (in “w” mode), or opens an existing one (in “a” or “r” mode). The equal character is required for the specification of the output file name. Any number of streams can be open for writing, but only one can be active at one time. The directive can be used to switch between open files; they do not need to be closed until output operations to them actually end. When activated, \verb|STDOUT| directs output to the MATLAB command window.
 
-\paragraph{} The \verb|%with| and \verb|%endwith| directive eases the burden of correctly coding TLC scripts and to clarify their flow of control. Syntax is
+\paragraph{} The \verb|%with| and \verb|%endwith| directive eases the burden of correctly coding TLC scripts and to clarify their context or scope. The syntax for their use is
 \begin{verbatim}
 %with RecordName
 %% TLC stamements...
 %endwith
 \end{verbatim}
-they can also be nested; for example it can be very useful while using \verb|foreach| loops
+they can also be nested; for example it can be very useful while using \verb|foreach| loops to write
 \begin{lstlisting}
 %with CompiledModel
 %with DataTypes
@@ -384,7 +384,7 @@ Data Type Name: %<DataType[dt].SLName>
 \end{lstlisting}
 
 \subsubsection{Counting Blocks and Subsystems}
-As an example, the following TLC code count subsystems and blocks in the model.
+As an example, the following TLC code counts the subsystems and blocks in the model.
 \begin{lstlisting}
 %% File: CountSubSysAndBlocks.tlc
 %% Count blocks and subsystems of a model.rtw file
@@ -409,7 +409,7 @@ As an example, the following TLC code count subsystems and blocks in the model.
 *** END LISTING
 %% end CountSubSysAndBlocks.tlc
 \end{lstlisting}
-we can run this script writing in the command window
+the script can be executed by writing in the command window
 \begin{verbatim}
 tlc -r model.rtw CountSubSysAndBlocks.tlc
 \end{verbatim}
@@ -428,15 +428,15 @@ obtaining, for example
 
 %********************************** % Section  **************************************
 \section{Developed Framework}\label{sec:DevelopedFramework}
-The aim of the thesis is to develop a framework to run different applications with different criticality levels in multi-core platforms ensuring adequate safety requirements. While a robust partitioning and scheduling algorithm are still open problems, we focused on developing a code generation framework to implement, on PikeOS, such scheme.
-\par For this reason, we first developed a complete but trivial partitioning and a scheduling algorithm that extracts information from a Simulink model, let the designer configure and run the optimization engine for threads allocation. This generates a configuration useful for the automatic code generation process. Figure \ref{fig:FrameworkOverview} shows the simplified design flow.
+The aim of the thesis is to develop a framework to run different applications with different criticality levels in multi-core platforms ensuring adequate safety requirements. While the development of a robust optimal partitioning and scheduling algorithm is still an open problem, we focused on developing a code generation framework to implement, on PikeOS, a suitable scheme.
+\par For this reason, we first developed a complete but relatively simple partitioning and a scheduling algorithm that extracts information from a Simulink model, lets the designer perform some configuration options and then provides an optimization engine for the allocation of the threads. The framework enables a full process flow for the automatic code generation of a mixed critical application. Figure \ref{fig:FrameworkOverview} shows the simplified design flow.
 \begin{figure}[htbp] 
 \centering    
 \includegraphics[width=0.7\textwidth]{FrameworkOverview}
 \caption{Developed Framework overview}
 \label{fig:FrameworkOverview}
 \end{figure}
-\par Once the models are developed and the simulation results are satisfactory, the system designer groups blocks in subsystems, which are considered as the unit of execution, such that there are no spare blocks among subsystems. Then a Matlab script uses the Simulink modeling API (programming interface) to parse the model structure and create a functional representation of the model to be utilized in the scheduling process (eventually exported an XML). Finally, if the scheduling gives good results, the code generation process can be started.
+\par Once the models are developed and the simulation results are satisfactory, the system designer groups blocks in subsystems, which are considered as the unit of execution, such that there are no spare blocks among subsystems. Then a Matlab script uses the Simulink modeling API (programming interface) to parse the model structure and create a functional representation of the model to be utilized in the scheduling process (eventually exported as an XML). Finally, after the completion of the scheduling, the code generation process can start.
 
 \subsection{Model Functional Representation}
 A current challenge in the development of parallel applications is the achievement of a good scalability with the number of threads and processors. Often the scalability is heavily reduced by the precedence order of execution among threads (usually due to data dependencies). A possible approach to model the problem is through a \emph{Directed Acyclic Graph} (DAG). The DAG is a functional representation of the model, it consists of vertices (threads) and edges (communications/precedences) among nodes, with each edge directed from one vertex to another. The fact that it is an acyclic graph ensures that there is no \emph{algebraic loop} in the model. An algebraic loop occurs when a signal loop with only direct feedthrough blocks within it exist.
@@ -477,7 +477,7 @@ The scheduling process is implemented in Matlab as shown in figure \ref{fig:Sche
 \end{figure}
 
 \subsection{Code Generation}
-Code generation is a popular and mature technology. However, an optimal solution for code generation for mixed-criticality systems has not be found. Since robust partitioning is the common way to address mixed-criticality the code generation framework should take as input the description of such partitioned system. Recalling the fact that the code needs to be mapped into PikeOS execution entities, it is assumed that (with respect to PikeOS terminology) each Resource Partition is made by one Process with its threads and assigned to only one Time Partition. Obtaining the software architecture depicted in figure \ref{fig:SWArchitecture}.
+An optimal solution for the generation of code for mixed-criticality systems is not available from the literature. Since robust partitioning is the common way to address mixed-criticality, the code generation framework should take as input the description of such partitioned system. Recalling the fact that the code needs to be mapped into PikeOS execution entities, it is assumed that (with respect to PikeOS terminology) each Resource Partition is made by one Process with its threads and assigned to only one Time Partition. Obtaining the software architecture depicted in figure \ref{fig:SWArchitecture}.
 \begin{figure}[htbp] 
 \centering    
 \includegraphics[width=0.9\textwidth]{SWArchitecture}
